@@ -1,0 +1,61 @@
+```html
+<div id="name">St. Vincent</div>
+<div id="artist_name">St. Vincent</div>
+<div id="artist_id">7bcbShaqKdcyjnmv4Ix8j6</div>
+<div id="artist_image">
+  <div id="height">640</div>
+  <div id="url">https://image.url</div>
+  <div id="width">640</div>
+</div>
+<ul id="artist_genres">
+  <li id="0">art pop</li>
+  <li id="1">electropop</li>
+  <li id="2">etherpop</li>
+</ul>
+<div id="last_album_id">1jfLCbkowa2O8Wq52mo61d</div>
+<div id="last_album_name">The Nowhere Inn</div>
+<div id="last_album_image">
+  <div id="height">640</div>
+  <div id="url">image.jpg</div>
+  <div id="width">640</div>
+</div>
+<ul id="last_album_genres">
+
+</ul>
+```
+
+- if you run:
+
+$ ...some piped html | query_html ". | h1 #artist_name | img #url,50% | wp article | rm #height #width | h2 #last_album_name | rm #last_album_genres"
+
+- output:
+
+```
+<article>
+  <div id="name">St. Vincent</div>
+  <h1 id="artist_name">St. Vincent</h1>
+  <div id="artist_id">7bcbShaqKdcyjnmv4Ix8j6</div>
+  <div id="artist_image">
+    
+    <img height="50%" width="auto" src="https://image.url" alt="image">
+    
+  </div>
+  <ul id="artist_genres">
+      <li id="0">art pop</li>
+      <li id="1">electropop</li>
+      <li id="2">etherpop</li>
+  </ul>
+  <div id="last_album_id">1jfLCbkowa2O8Wq52mo61d</div>
+  <h2 id="last_album_name">The Nowhere Inn</h2>
+  <div id="last_album_image">
+    
+    <img height="50%" width="auto" src="image.jpg" alt="image">
+    
+  </div>
+</article>
+```
+
+- run test:
+ $ deno test --allow-read . --watch
+
+ 
