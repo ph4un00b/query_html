@@ -1,3 +1,7 @@
+- raw install:
+
+$ deno install --reload -n query_html --allow-read https://raw.githubusercontent.com/ph4un00b/query_html/master/cli.ts
+
 ```html
 <div id="name">St. Vincent</div>
 <div id="artist_name">St. Vincent</div>
@@ -58,4 +62,3 @@ $ ...some piped html | query_html ". | h1 #artist_name | img #url,50% | wp artic
 - run test:
  $ deno test --allow-read . --watch
 
- 
