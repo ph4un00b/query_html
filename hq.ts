@@ -1,65 +1,106 @@
 import {
   HTMLElement,
+  Node,
   parse,
 } from "https://esm.sh/node-html-parser@5.2.0";
+import beautify from "https://esm.sh/js-beautify@1.14.0";
 
-export function query_html(string_query: string, html_string: string, whitespace = true) {
-  if (_is_dot(string_query)) return html_string;
+export function query_html(
+  query: string,
+  html_data: string,
+  whitespace = true,
+) {
+  if (_is_dot(query)) return beautify.html(html_data);
 
-  let html: HTMLElement = parse(html_string);
-  for (const expression of _commands(string_query)) {
-    const [program, ...parameters] = expression.split(" ");
-    _run(program, parameters, html);
+  let html: HTMLElement = parse(html_data);
+  for (const expression of _commands(query)) {
+    _run(expression, html);
     html = parse(html?.toString());
   }
 
-  if (whitespace) {
-    return html.toString();
-  } else {
-    return html.removeWhitespace().toString();
-  }
+  return _html(html, whitespace);
 }
 
-function _run(program: string, params: string[], html: HTMLElement) {
+function _html(html: HTMLElement, whitespace: boolean): string {
+  return whitespace
+    ? beautify.html(html.removeWhitespace().toString())
+    : html.removeWhitespace().toString();
+}
+
+function _run(expression: string, html: HTMLElement) {
+  const [program, ...params] = expression.split(" ");
   for (const param of params) {
-    if (program === "wp") {
-      const wrapper = new HTMLElement(param, {}, "", null);
-      wrapper.appendChild(html);
-      html.set_content(wrapper.toString());
-    } else if (program === "img") {
-      let [query, height = "", width = ""] = param.split(",");
-      height = height !== "" ? height : "auto";
-      width = width !== "" ? width : "auto";
-      html.querySelectorAll(query).forEach(function (node) {
-        const src = node.textContent;
-        node.replaceWith(
-          new HTMLElement(
-            "img",
-            { id: node.id },
-            `height="${height}" width="${width}" src="${src}" alt="image"`,
-            null,
-          ),
-        );
-      });
+    if (_wrap_around(program)) {
+      _wrap_program(param, html);
+    } else if (_image_tag(program)) {
+      _img_program(param, html);
+    } else if (program == "rm") {
+      _rm_program(html, param);
     } else {
-      html.querySelectorAll(param).forEach(function (node) {
-        if (program === "rm") {
-          node.remove();
-        } else {
-          node.tagName = program;
-        }
-      });
-      html.set_content(html?.toString());
+      _tag_program(html, param, program);
     }
   }
 }
 
-function _is_dot(string_query: string) {
-  return string_query.match(/^.$/g)?.length;
+function _tag_program(html: HTMLElement, param: string, program: string) {
+  html.querySelectorAll(param).forEach(function (node) {
+    node.tagName = program;
+  });
+  html.set_content(html?.toString());
 }
 
-function _commands(string_query: string): string[] {
-  const [_cat, ...commands] = string_query
+function _rm_program(html: HTMLElement, param: string) {
+  html.querySelectorAll(param).forEach(function (node) {
+    node.remove();
+  });
+  html.set_content(html?.toString());
+}
+
+function _img_program(param: string, html: HTMLElement) {
+  let [query, height = "", width = ""] = param.split(",");
+  height = height !== "" ? height : "auto";
+  width = width !== "" ? width : "auto";
+  html.querySelectorAll(query).forEach(function (node) {
+    const src = node.textContent;
+    const id = node.id;
+    node.replaceWith(_img_element(id, height, width, src));
+  });
+}
+
+function _img_element(
+  id: string,
+  height: string,
+  width: string,
+  src: string,
+): string | Node {
+  return new HTMLElement(
+    "img",
+    { id },
+    `height="${height}" width="${width}" src="${src}" alt="image"`,
+    null,
+  );
+}
+
+function _wrap_program(param: string, html: HTMLElement) {
+  const wrapper = new HTMLElement(param, {}, "", null);
+  wrapper.appendChild(html);
+  html.set_content(wrapper.toString());
+}
+
+function _image_tag(program: string) {
+  return program === "img";
+}
+
+function _wrap_around(program: string) {
+  return program === "wp";
+}
+
+function _is_dot(query: string) {
+  return query.match(/^.$/g)?.length;
+}
+
+function _commands(query: string): string[] {
+  const [_cat, ...commands] = query
     .split("|")
     .map((match: string) => match.trim());
   return commands;

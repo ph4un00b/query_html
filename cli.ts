@@ -5,6 +5,7 @@ import { query_html } from "./hq.ts";
 const html = await data_stdin();
 console.log(query_html(Deno.args[0], html.join(""), false));
 
+console.log("jamon");
 async function data_stdin() {
   const html = [];
   for await (const line of readLines(Deno.stdin)) {
