@@ -2,13 +2,14 @@ import {
   HTMLElement,
   Node,
   parse,
+  TextNode,
 } from "https://esm.sh/node-html-parser@5.2.0";
 import beautify from "https://esm.sh/js-beautify@1.14.0";
 
 export function query_html(
   query: string,
   html_data: string,
-  whitespace = true,
+  whitespace = true
 ) {
   if (_is_dot(query)) return beautify.html(html_data);
 
@@ -30,9 +31,22 @@ function _html(html: HTMLElement, whitespace: boolean): string {
 function _run(expression: string, html: HTMLElement) {
   const [program, ...params] = expression.split(" ");
   for (const param of params) {
-    if (_wrap_around(program)) {
+    if (program == "iab") {
+      const [selector, tagToInsert, nodeValueOrExpression] = param.split(",");
+      // todo: handle "." in raw strings, f.i. -> "hello . with . dots."
+      const [_placeholder, attribute] = nodeValueOrExpression?.split(".") ?? [];
+      html.querySelectorAll(selector).forEach(function (node) {
+        const elementToInsert = new HTMLElement(tagToInsert, {}, "", null);
+        const value = attribute
+          ? node.getAttribute(attribute)!
+          : nodeValueOrExpression;
+        elementToInsert.appendChild(new TextNode(value, elementToInsert));
+        node.insertAdjacentHTML("afterbegin", elementToInsert.outerHTML);
+      });
+      html.set_content(html?.toString());
+    } else if (program == "wp") {
       _wrap_program(param, html);
-    } else if (_image_tag(program)) {
+    } else if (program == "img") {
       _img_program(param, html);
     } else if (program == "rm") {
       _rm_program(html, param);
@@ -71,28 +85,25 @@ function _img_element(
   id: string,
   height: string,
   width: string,
-  src: string,
+  src: string
 ): string | Node {
   return new HTMLElement(
     "img",
     { id },
     `height="${height}" width="${width}" src="${src}" alt="image"`,
-    null,
+    null
   );
 }
 
 function _wrap_program(param: string, html: HTMLElement) {
-  const wrapper = new HTMLElement(param, {}, "", null);
+  const [tagName, ...attributes] = param.split(",");
+  const [attrName, attrValue] = attributes;
+  const rawAttributes =
+    attributes.length > 0 ? `${attrName}="${attrValue}"` : "";
+
+  const wrapper = new HTMLElement(tagName, {}, rawAttributes, null);
   wrapper.appendChild(html);
   html.set_content(wrapper.toString());
-}
-
-function _image_tag(program: string) {
-  return program === "img";
-}
-
-function _wrap_around(program: string) {
-  return program === "wp";
 }
 
 function _is_dot(query: string) {
