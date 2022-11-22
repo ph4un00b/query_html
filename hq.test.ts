@@ -366,3 +366,42 @@ Deno.test("can wrap around with attribute", function () {
 
   assertEquals(query_html(". | wp ul,class,tree", html), expectedHtml);
 });
+
+Deno.test("can wrap around an specific element", function () {
+  const html = `
+<div id="integer">ms</div>
+<div id="string">query</div>
+<ul id="result">
+    <div id="0">
+        <div id="string">_createdAt</div>
+        <div id="string">_id</div>
+        <div id="string">_rev</div>
+        <div id="string">_type</div>
+        <div id="string">_updatedAt</div>
+        <div id="string">imageUrl</div>
+        <div id="string">name</div>
+        <div id="string">title</div>
+    </div>
+</ul>`;
+
+  const expectedHtml = `<ul class="tree">
+    <div id="integer">ms</div>
+    <div id="string">query</div>
+    <li>
+        <ul id="result">
+            <div id="0">
+                <div id="string">_createdAt</div>
+                <div id="string">_id</div>
+                <div id="string">_rev</div>
+                <div id="string">_type</div>
+                <div id="string">_updatedAt</div>
+                <div id="string">imageUrl</div>
+                <div id="string">name</div>
+                <div id="string">title</div>
+            </div>
+        </ul>
+    </li>
+</ul>`;
+
+  assertEquals(query_html(". | wp ul,class,tree | we #result,li", html), expectedHtml);
+});

@@ -3,13 +3,13 @@ import {
   Node,
   parse,
   TextNode,
-} from "https://esm.sh/node-html-parser@5.2.0";
+} from "https://esm.sh/node-html-parser@6.1.4";
 import beautify from "https://esm.sh/js-beautify@1.14.0";
 
 export function query_html(
   query: string,
   html_data: string,
-  whitespace = true
+  whitespace = true,
 ) {
   if (_is_dot(query)) return beautify.html(html_data);
 
@@ -31,12 +31,27 @@ function _html(html: HTMLElement, whitespace: boolean): string {
 function _run(expression: string, html: HTMLElement) {
   const [program, ...params] = expression.split(" ");
   for (const param of params) {
-    if (program == "iab") {
+    if (program == "we") {
+      const [selector, tagToInsert] = param.split(",");
+      html.querySelectorAll(selector).forEach(function (node) {
+        const child = node.clone();
+        const wrapper = new HTMLElement(tagToInsert, {}, "", null, [0, 0]);
+        wrapper.appendChild(child);
+        node.replaceWith(wrapper);
+      });
+      html.set_content(html?.toString());
+    } else if (program == "iab") {
       const [selector, tagToInsert, nodeValueOrExpression] = param.split(",");
       // todo: handle "." in raw strings, f.i. -> "hello . with . dots."
       const [_placeholder, attribute] = nodeValueOrExpression?.split(".") ?? [];
       html.querySelectorAll(selector).forEach(function (node) {
-        const elementToInsert = new HTMLElement(tagToInsert, {}, "", null);
+        const elementToInsert = new HTMLElement(
+          tagToInsert,
+          {},
+          "",
+          null,
+          [0, 0],
+        );
         const value = attribute
           ? node.getAttribute(attribute)!
           : nodeValueOrExpression;
@@ -85,23 +100,25 @@ function _img_element(
   id: string,
   height: string,
   width: string,
-  src: string
+  src: string,
 ): string | Node {
   return new HTMLElement(
     "img",
     { id },
     `height="${height}" width="${width}" src="${src}" alt="image"`,
-    null
+    null,
+    [0, 0],
   );
 }
 
 function _wrap_program(param: string, html: HTMLElement) {
   const [tagName, ...attributes] = param.split(",");
   const [attrName, attrValue] = attributes;
-  const rawAttributes =
-    attributes.length > 0 ? `${attrName}="${attrValue}"` : "";
+  const rawAttributes = attributes.length > 0
+    ? `${attrName}="${attrValue}"`
+    : "";
 
-  const wrapper = new HTMLElement(tagName, {}, rawAttributes, null);
+  const wrapper = new HTMLElement(tagName, {}, rawAttributes, null, [0, 0]);
   wrapper.appendChild(html);
   html.set_content(wrapper.toString());
 }
