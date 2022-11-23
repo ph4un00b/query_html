@@ -288,11 +288,16 @@ Deno.test("can insert node after begin with a value", function () {
     </details>
 </ul>`;
 
-  assertEquals(query_html(". | iab #result,summary,hello!", html), expectedHtml);
+  assertEquals(
+    query_html(". | iab #result,summary,hello!", html),
+    expectedHtml,
+  );
 });
 
-Deno.test("can insert node after begin with a value from a parent reference", function () {
-  const html = `<ul>
+Deno.test(
+  "can insert node after begin with a value from a parent reference",
+  function () {
+    const html = `<ul>
     <li id="integer">ms</li>
     <li id="string">query</li>
     <details id="result">
@@ -309,7 +314,7 @@ Deno.test("can insert node after begin with a value from a parent reference", fu
     </details>
 </ul>`;
 
-  const expectedHtml = `<ul>
+    const expectedHtml = `<ul>
     <li id="integer">ms</li>
     <li id="string">query</li>
     <details id="result">
@@ -327,8 +332,12 @@ Deno.test("can insert node after begin with a value from a parent reference", fu
     </details>
 </ul>`;
 
-  assertEquals(query_html(". | iab #result,summary,&.id", html), expectedHtml);
-});
+    assertEquals(
+      query_html(". | iab #result,summary,&.id", html),
+      expectedHtml,
+    );
+  },
+);
 
 Deno.test("can wrap around with attribute", function () {
   const html = `
@@ -403,5 +412,62 @@ Deno.test("can wrap around an specific element", function () {
     </li>
 </ul>`;
 
-  assertEquals(query_html(". | wp ul,class,tree | we #result,li", html), expectedHtml);
+  assertEquals(
+    query_html(". | wp ul,class,tree | we #result,li", html),
+    expectedHtml,
+  );
+});
+
+Deno.test({
+  // only: true,
+  name: "can change multiple tag names by querying css attribute selectors",
+  fn: function () {
+    const html = `<details id="parties" class="list">
+  <summary>parties</summary>
+  <ul id="0" class="object">
+      <li id="string">id</li>
+      <li id="string">type</li>
+      <div id="metadata" class="object">
+          <li id="string">date</li>
+          <div id="main_image" class="object">
+              <li id="string">url</li>
+          </div>
+      </div>
+  </ul>
+</details>`;
+
+const expectedHtml = `<details id="parties" class="list">
+    <summary>parties</summary>
+    <ul id="0" class="object">
+        <li id="string">id</li>
+        <li id="string">type</li>
+        <ul>
+            <div id="metadata" class="object">
+                <li id="string">date</li>
+                <ul>
+                    <div id="main_image" class="object">
+                        <li id="string">url</li>
+                    </div>
+                </ul>
+            </div>
+        </ul>
+    </ul>
+</details>`;
+
+    assertEquals(
+      query_html(
+        ". | we :not([id$='0'])[class='object'],ul",
+        html,
+      ),
+      expectedHtml,
+    );
+
+    assertEquals(
+      query_html(
+        ". | we :not([id$='0']).object,ul",
+        html,
+      ),
+      expectedHtml,
+    );
+  },
 });

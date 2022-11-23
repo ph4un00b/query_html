@@ -32,14 +32,70 @@ function _run(expression: string, html: HTMLElement) {
   const [program, ...params] = expression.split(" ");
   for (const param of params) {
     if (program == "we") {
+      // console.log(param.split(","));
       const [selector, tagToInsert] = param.split(",");
-      html.querySelectorAll(selector).forEach(function (node) {
-        const child = node.clone();
-        const wrapper = new HTMLElement(tagToInsert, {}, "", null, [0, 0]);
-        wrapper.appendChild(child);
-        node.replaceWith(wrapper);
-      });
-      html.set_content(html?.toString());
+      /** @todo: handle undefined tagToInsert, raise some error! */
+      /**
+       * [
+  "parentNode", "childNodes",
+  "rawAttrs",   "voidTag",
+  "nodeType",   "rawTagName",
+  "id",         "_parseOptions",
+  "classList",  "_attrs",
+  "_rawAttrs"
+]
+       */
+      // console.log(html.querySelectorAll(selector)[0])
+      const elements = html.querySelectorAll(selector);
+      // for (const e of elements) {
+      //   console.log(e.attributes);
+      // }
+      // for (const e of elements) {
+      //   console.log(e.attrs);
+      // }
+      // for (const e of elements) {
+      //   console.log(e.classNames);
+      // }
+      // for (const e of elements) {
+      //   console.log(e.rawAttributes);
+      // }
+      // for (const e of elements) {
+      //   console.log(e.rawAttrs);
+      // }
+      // for (const e of elements) {
+      //   console.log(e.rawTagName);
+      // }
+      // for (const e of elements) {
+      //   console.log(e.parentNode.rawTagName);
+      // }
+
+      const nodesToReplace = [];
+      for (const node of elements) {
+        // console.log(node.parentNode.rawTagName);
+        nodesToReplace.push(node.attributes);
+      }
+
+      // console.log({nodesToReplace})
+      const selectors = []
+      for (const {id, class: klass} of nodesToReplace) {
+        if (id && klass) selectors.push(`[id="${id}"][class="${klass}"]`)
+        else if (id) selectors.push(`[id="${id}"]`)
+        else if (klass) selectors.push(`[class="${klass}"]`)
+      }
+
+      // console.log({selectors})
+      for (const selector of selectors) {
+        const node = html.querySelector(selector);
+        if (node) {
+          const child = node.clone();
+          const wrapper = new HTMLElement(tagToInsert, {}, "", null, [0, 0]);
+          wrapper.appendChild(child);
+          node.replaceWith(wrapper);
+
+          html.set_content(beautify.html(html?.toString()));
+        }
+      }
+      // console.log(html.toString())
     } else if (program == "iab") {
       const [selector, tagToInsert, nodeValueOrExpression] = param.split(",");
       // todo: handle "." in raw strings, f.i. -> "hello . with . dots."
@@ -72,7 +128,12 @@ function _run(expression: string, html: HTMLElement) {
 }
 
 function _tag_program(html: HTMLElement, param: string, program: string) {
+  // console.log(param.split("+"));
+  // html.querySelectorAll(param).forEach(function (node) {
+  // html.querySelectorAll("[id$='main_image'] [class='object']").forEach(function (node) {
+  // html.querySelectorAll("[class='object'][id$='0']").forEach(function (node) {
   html.querySelectorAll(param).forEach(function (node) {
+    // console.log(node.outerHTML)
     node.tagName = program;
   });
   html.set_content(html?.toString());
