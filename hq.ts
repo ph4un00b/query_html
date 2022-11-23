@@ -75,15 +75,22 @@ function _run(expression: string, html: HTMLElement) {
         nodesToReplace.push(node.attributes);
       }
 
-      // console.log({nodesToReplace})
-      const selectors = []
-      for (const {id, class: klass} of nodesToReplace) {
-        if (id && klass) selectors.push(`[id="${id}"][class="${klass}"]`)
-        else if (id) selectors.push(`[id="${id}"]`)
-        else if (klass) selectors.push(`[class="${klass}"]`)
+      console.log({ nodesToReplace });
+      const selectors = [];
+      for (const node of nodesToReplace) {
+        let selector = "";
+        const attributes = Object.entries(node);
+        attributes.forEach((element) => {
+          const [attr, val] = element;
+          selector += `[${attr}="${val}"]`;
+        });
+        selectors.push(selector);
+        // if (id && klass) selectors.push(`[id="${id}"][class="${klass}"]`)
+        // else if (id) selectors.push(`[id="${id}"]`)
+        // else if (klass) selectors.push(`[class="${klass}"]`)
       }
 
-      // console.log({selectors})
+      console.log({ selectors });
       for (const selector of selectors) {
         const node = html.querySelector(selector);
         if (node) {

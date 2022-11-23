@@ -15460,20 +15460,44 @@ function _run(expression, html) {
     for (const param of params){
         if (program == "we") {
             const [selector, tagToInsert] = param.split(",");
-            html.querySelectorAll(selector).forEach(function(node) {
-                const child = node.clone();
-                const wrapper = new fr(tagToInsert, {}, "", null, [
-                    0,
-                    0
-                ]);
-                wrapper.appendChild(child);
-                node.replaceWith(wrapper);
+            const elements = html.querySelectorAll(selector);
+            const nodesToReplace = [];
+            for (const node of elements){
+                nodesToReplace.push(node.attributes);
+            }
+            console.log({
+                nodesToReplace
             });
-            html.set_content(html?.toString());
+            const selectors = [];
+            for (const node1 of nodesToReplace){
+                let selector1 = "";
+                const attributes = Object.entries(node1);
+                attributes.forEach((element)=>{
+                    const [attr, val] = element;
+                    selector1 += `[${attr}="${val}"]`;
+                });
+                selectors.push(selector1);
+            }
+            console.log({
+                selectors
+            });
+            for (const selector2 of selectors){
+                const node2 = html.querySelector(selector2);
+                if (node2) {
+                    const child = node2.clone();
+                    const wrapper = new fr(tagToInsert, {}, "", null, [
+                        0,
+                        0
+                    ]);
+                    wrapper.appendChild(child);
+                    node2.replaceWith(wrapper);
+                    html.set_content(xs.html(html?.toString()));
+                }
+            }
         } else if (program == "iab") {
-            const [selector1, tagToInsert1, nodeValueOrExpression] = param.split(",");
+            const [selector3, tagToInsert1, nodeValueOrExpression] = param.split(",");
             const [_placeholder, attribute] = nodeValueOrExpression?.split(".") ?? [];
-            html.querySelectorAll(selector1).forEach(function(node) {
+            html.querySelectorAll(selector3).forEach(function(node) {
                 const elementToInsert = new fr(tagToInsert1, {}, "", null, [
                     0,
                     0
