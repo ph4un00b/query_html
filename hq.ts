@@ -75,7 +75,7 @@ function _run(expression: string, html: HTMLElement) {
         nodesToReplace.push(node.attributes);
       }
 
-      console.log({ nodesToReplace });
+      // console.log({ nodesToReplace });
       const selectors = [];
       for (const node of nodesToReplace) {
         let selector = "";
@@ -90,7 +90,7 @@ function _run(expression: string, html: HTMLElement) {
         // else if (klass) selectors.push(`[class="${klass}"]`)
       }
 
-      console.log({ selectors });
+      // console.log({ selectors });
       for (const selector of selectors) {
         const node = html.querySelector(selector);
         if (node) {

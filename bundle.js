@@ -15465,9 +15465,6 @@ function _run(expression, html) {
             for (const node of elements){
                 nodesToReplace.push(node.attributes);
             }
-            console.log({
-                nodesToReplace
-            });
             const selectors = [];
             for (const node1 of nodesToReplace){
                 let selector1 = "";
@@ -15478,9 +15475,6 @@ function _run(expression, html) {
                 });
                 selectors.push(selector1);
             }
-            console.log({
-                selectors
-            });
             for (const selector2 of selectors){
                 const node2 = html.querySelector(selector2);
                 if (node2) {
