@@ -436,7 +436,7 @@ Deno.test({
   </ul>
 </details>`;
 
-const expectedHtml = `<details id="parties" class="list">
+    const expectedHtml = `<details id="parties" class="list">
     <summary>parties</summary>
     <ul id="0" class="object">
         <li id="string">id</li>
@@ -455,18 +455,12 @@ const expectedHtml = `<details id="parties" class="list">
 </details>`;
 
     assertEquals(
-      query_html(
-        ". | we :not([id$='0'])[class='object'],ul",
-        html,
-      ),
+      query_html(". | we :not([id$='0'])[class='object'],ul", html),
       expectedHtml,
     );
 
     assertEquals(
-      query_html(
-        ". | we :not([id$='0']).object,ul",
-        html,
-      ),
+      query_html(". | we :not([id$='0']).object,ul", html),
       expectedHtml,
     );
   },
