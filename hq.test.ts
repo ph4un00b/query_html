@@ -68,8 +68,11 @@ Deno.test("can change tag names.", function () {
   assertEquals(from_file("_chunk.html", ". | h1 #artist_name"), html);
 });
 
-Deno.test("can remove elements.", function () {
-  const html = `<div id="name">St. Vincent</div>
+Deno.test({
+  // only: true,
+  name: "can remove elements.",
+  fn: function () {
+    const html = `<div id="name">St. Vincent</div>
 <h1 id="artist_name">St. Vincent</h1>
 <div id="artist_id">7bcbShaqKdcyjnmv4Ix8j6</div>
 <div id="artist_image">
@@ -85,13 +88,14 @@ Deno.test("can remove elements.", function () {
 <div id="last_album_image">
     <div id="url">image.jpg</div>
 </div>`;
-  assertEquals(
-    from_file(
-      "_chunk.html",
-      ". | h1 #artist_name | rm #last_album_genres #height #width | h2 #last_album_name",
-    ),
-    html,
-  );
+    assertEquals(
+      from_file(
+        "_chunk.html",
+        ". | h1 #artist_name | rm #last_album_genres,#height,#width | h2 #last_album_name"
+      ),
+      html
+    );
+  },
 });
 
 Deno.test("can wrap around elements.", function () {
@@ -117,9 +121,9 @@ Deno.test("can wrap around elements.", function () {
     from_file(
       "_chunk.html",
       // ". | h1 #artist_name | rm #last_album_genres #height #width | h2 #last_album_name | {article}",
-      ". | h1 #artist_name | rm #last_album_genres #height #width | h2 #last_album_name | wp article",
+      ". | h1 #artist_name | rm #last_album_genres,#height,#width | h2 #last_album_name | wp article"
     ),
-    html,
+    html
   );
 });
 
@@ -146,9 +150,9 @@ Deno.test("can execute in diferrent order.", function () {
     from_file(
       "_chunk.html",
       // ". | h1 #artist_name | rm #last_album_genres #height #width | h2 #last_album_name | {article}",
-      ". | h1 #artist_name | wp article | rm #height #width | h2 #last_album_name | rm #last_album_genres",
+      ". | h1 #artist_name | wp article | rm #height,#width | h2 #last_album_name | rm #last_album_genres"
     ),
-    html,
+    html
   );
 });
 
@@ -170,9 +174,9 @@ Deno.test("can change to <img> with different dimensions.", function () {
   assertEquals(
     from_file(
       "_chunk.html",
-      ". | h1 #artist_name | img #url,50,50 | wp article | rm #height #width | h2 #last_album_name | rm #last_album_genres",
+      ". | h1 #artist_name | img #url,50,50 | wp article | rm #height,#width | h2 #last_album_name | rm #last_album_genres"
     ),
-    html,
+    html
   );
 
   html = `<article>
@@ -193,23 +197,22 @@ Deno.test("can change to <img> with different dimensions.", function () {
   assertEquals(
     from_file(
       "_chunk.html",
-      ". | h1 #artist_name | img #url,,50 | wp article | rm #height #width | h2 #last_album_name | rm #last_album_genres",
+      ". | h1 #artist_name | img #url,,50 | wp article | rm #height,#width | h2 #last_album_name | rm #last_album_genres"
     ),
-    html,
+    html
   );
 });
 
 Deno.test("can output without whitespaces", function () {
-  const html =
-    `<article><div id="name">St. Vincent</div><h1 id="artist_name">St. Vincent</h1><div id="artist_id">7bcbShaqKdcyjnmv4Ix8j6</div><div id="artist_image"><img height="50%" width="auto" src="https://image.url" alt="image"></div><ul id="artist_genres"><li id="0">art pop</li><li id="1">electropop</li><li id="2">etherpop</li></ul><div id="last_album_id">1jfLCbkowa2O8Wq52mo61d</div><h2 id="last_album_name">The Nowhere Inn</h2><div id="last_album_image"><img height="50%" width="auto" src="image.jpg" alt="image"></div></article>`;
+  const html = `<article><div id="name">St. Vincent</div><h1 id="artist_name">St. Vincent</h1><div id="artist_id">7bcbShaqKdcyjnmv4Ix8j6</div><div id="artist_image"><img height="50%" width="auto" src="https://image.url" alt="image"></div><ul id="artist_genres"><li id="0">art pop</li><li id="1">electropop</li><li id="2">etherpop</li></ul><div id="last_album_id">1jfLCbkowa2O8Wq52mo61d</div><h2 id="last_album_name">The Nowhere Inn</h2><div id="last_album_image"><img height="50%" width="auto" src="image.jpg" alt="image"></div></article>`;
 
   assertEquals(
     from_file(
       "_chunk.html",
-      ". | h1 #artist_name | img #url,50% | wp article | rm #height #width | h2 #last_album_name | rm #last_album_genres",
-      false,
+      ". | h1 #artist_name | img #url,50% | wp article | rm #height,#width | h2 #last_album_name | rm #last_album_genres",
+      false
     ),
-    html,
+    html
   );
 });
 
@@ -290,7 +293,7 @@ Deno.test("can insert node after begin with a value", function () {
 
   assertEquals(
     query_html(". | iab #result,summary,hello!", html),
-    expectedHtml,
+    expectedHtml
   );
 });
 
@@ -334,9 +337,9 @@ Deno.test(
 
     assertEquals(
       query_html(". | iab #result,summary,&.id", html),
-      expectedHtml,
+      expectedHtml
     );
-  },
+  }
 );
 
 Deno.test("can wrap around with attribute", function () {
@@ -414,7 +417,7 @@ Deno.test("can wrap around an specific element", function () {
 
   assertEquals(
     query_html(". | wp ul,class,tree | we #result,li", html),
-    expectedHtml,
+    expectedHtml
   );
 });
 
@@ -456,12 +459,237 @@ Deno.test({
 
     assertEquals(
       query_html(". | we :not([id$='0'])[class='object'],ul", html),
-      expectedHtml,
+      expectedHtml
     );
 
     assertEquals(
       query_html(". | we :not([id$='0']).object,ul", html),
-      expectedHtml,
+      expectedHtml
     );
   },
 });
+
+Deno.test("can change value of elements with a template string", function () {
+  const html = `
+<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary>result</summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+  const expectedHtml = `<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary><input type="checkbox" id="sports" name="interest" value="sports"><label for="sports">Sports</label></summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+  assertEquals(
+    query_html(
+      '. | value summary,<input type="checkbox" id="sports" name="interest" value="sports" /><label for="sports">Sports</label>',
+      html
+    ),
+    expectedHtml
+  );
+});
+
+Deno.test(
+  "can change value of elements by merging a template string and placeholder fields",
+  function () {
+    const html = `
+<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary data-test="jamon">result</summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+    const expectedHtml = `<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary data-test="jamon"><input type="checkbox" id="sports" name="interest" value="sports"><label for="sports">result</label></summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+    assertEquals(
+      query_html(
+        '. | value summary,<input type="checkbox" id="sports" name="interest" value="sports" /><label for="sports">{{%}}</label>,&.value',
+        html
+      ),
+      expectedHtml
+    );
+
+    const expectedHtml2 = `<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary data-test="jamon"><input type="checkbox" id="result" name="interest" value="sports"><label for="sports">result</label></summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+    assertEquals(
+      query_html(
+        '. | value summary,<input type="checkbox" id="{{%}}" name="interest" value="sports" /><label for="sports">{{%}}</label>,&.value,&.value',
+        html
+      ),
+      expectedHtml2
+    );
+
+    const expectedHtml3 = `<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary data-test="jamon"><input type="checkbox" id="result" name="interest" value="jamon"><label for="sports">result</label></summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+    assertEquals(
+      query_html(
+        '. | value summary,<input type="checkbox" id="{{%}}" name="interest" value="{{%}}" /><label for="sports">{{%}}</label>,&.value,&.data-test,&.value',
+        html
+      ),
+      expectedHtml3
+    );
+  }
+);
+
+Deno.test(
+  "can change value of elements by merging a template string and mixed placeholder fields",
+  function () {
+    const html = `
+<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary data-test="jamon">result</summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+    const expectedHtml = `<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary data-test="jamon"><input type="checkbox" id="uno" name="interest" value="dos"><label for="sports">tres</label></summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+    assertEquals(
+      query_html(
+        '. | value summary,<input type="checkbox" id="{{%}}" name="interest" value="{{%}}" /><label for="sports">{{%}}</label>,uno,dos,tres',
+        html
+      ),
+      expectedHtml
+    );
+
+    const expectedHtml2 = `<li data-path="ROOT/ms" data-key="integer">ms</li>
+<li data-path="ROOT/query" data-key="string">query</li>
+<li>
+    <details data-path="ROOT/result" data-key="result" class="j2h-tuple">
+        <summary data-test="jamon"><input type="checkbox" id="uno" name="interest" value="result"><label for="tres">jamon</label></summary>
+        <ul data-path="ROOT/result/0" data-key="0-754" data-name="0" class="j2h-record">
+            <li data-path="ROOT/result/0/_createdAt" data-key="string">_createdAt</li>
+            <li data-path="ROOT/result/0/_id" data-key="string">_id</li>
+            <li data-path="ROOT/result/0/_rev" data-key="string">_rev</li>
+            <li data-path="ROOT/result/0/_type" data-key="string">_type</li>
+            <li data-path="ROOT/result/0/_updatedAt" data-key="string">_updatedAt</li>
+            <li data-path="ROOT/result/0/imageUrl" data-key="string">imageUrl</li>
+            <li data-path="ROOT/result/0/name" data-key="string">name</li>
+            <li data-path="ROOT/result/0/title" data-key="string">title</li>
+        </ul>
+    </details>
+</li>`;
+
+    assertEquals(
+      query_html(
+        '. | value summary,<input type="checkbox" id="{{%}}" name="interest" value="{{%}}" /><label for="{{%}}">{{%}}</label>,uno,&.value,tres,&.data-test',
+        html
+      ),
+      expectedHtml2
+    );
+  }
+);

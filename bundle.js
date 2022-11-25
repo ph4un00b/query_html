@@ -15456,27 +15456,60 @@ function _html(html, whitespace) {
     return whitespace ? xs.html(html.removeWhitespace().toString()) : html.removeWhitespace().toString();
 }
 function _run(expression, html) {
-    const [program, ...params] = expression.split(" ");
+    const firstWhiteSpace = expression.indexOf(" ");
+    const [program, ...params] = [
+        expression.substring(0, firstWhiteSpace),
+        expression.substring(firstWhiteSpace + 1)
+    ];
     for (const param of params){
-        if (program == "we") {
-            const [selector, tagToInsert] = param.split(",");
-            const elements = html.querySelectorAll(selector);
+        if (program == "value") {
+            let [selector, valueTemplate, ...valuesOrExpressions] = param.split(",");
+            const attributes = valuesOrExpressions.map((x)=>x?.split(".") ?? x).map((x)=>{
+                if (x.length == 2) {
+                    return [
+                        "attribute",
+                        x[1]
+                    ];
+                }
+                return [
+                    "value",
+                    x[0]
+                ];
+            });
+            html.querySelectorAll(selector).forEach(function(node) {
+                attributes.forEach(function([type, data]) {
+                    let value = "";
+                    if (type == "attribute" && data == "value") {
+                        value = node.innerHTML;
+                    } else if (type == "attribute") {
+                        value = node.getAttribute(data) ?? "";
+                    } else {
+                        value = data;
+                    }
+                    valueTemplate = valueTemplate.replace("{{%}}", value);
+                });
+                node.set_content(valueTemplate);
+            });
+            html.set_content(html?.toString());
+        } else if (program == "we") {
+            const [selector1, tagToInsert] = param.split(",");
+            const elements = html.querySelectorAll(selector1);
             const nodesToReplace = [];
             for (const node of elements){
                 nodesToReplace.push(node.attributes);
             }
             const selectors = [];
             for (const node1 of nodesToReplace){
-                let selector1 = "";
-                const attributes = Object.entries(node1);
-                attributes.forEach((element)=>{
+                let selector2 = "";
+                const attributes1 = Object.entries(node1);
+                attributes1.forEach((element)=>{
                     const [attr, val] = element;
-                    selector1 += `[${attr}="${val}"]`;
+                    selector2 += `[${attr}="${val}"]`;
                 });
-                selectors.push(selector1);
+                selectors.push(selector2);
             }
-            for (const selector2 of selectors){
-                const node2 = html.querySelector(selector2);
+            for (const selector3 of selectors){
+                const node2 = html.querySelector(selector3);
                 if (node2) {
                     const child = node2.clone();
                     const wrapper = new fr(tagToInsert, {}, "", null, [
@@ -15489,9 +15522,9 @@ function _run(expression, html) {
                 }
             }
         } else if (program == "iab") {
-            const [selector3, tagToInsert1, nodeValueOrExpression] = param.split(",");
+            const [selector4, tagToInsert1, nodeValueOrExpression] = param.split(",");
             const [_placeholder, attribute] = nodeValueOrExpression?.split(".") ?? [];
-            html.querySelectorAll(selector3).forEach(function(node) {
+            html.querySelectorAll(selector4).forEach(function(node) {
                 const elementToInsert = new fr(tagToInsert1, {}, "", null, [
                     0,
                     0

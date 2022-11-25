@@ -29,9 +29,45 @@ function _html(html: HTMLElement, whitespace: boolean): string {
 }
 
 function _run(expression: string, html: HTMLElement) {
-  const [program, ...params] = expression.split(" ");
+  const firstWhiteSpace = expression.indexOf(" ");
+  const [program, ...params] = [
+    expression.substring(0, firstWhiteSpace),
+    expression.substring(firstWhiteSpace + 1),
+  ];
+
   for (const param of params) {
-    if (program == "we") {
+    if (program == "value") {
+      let [selector, valueTemplate, ...valuesOrExpressions] = param.split(",");
+      const attributes = valuesOrExpressions
+        // todo: handle "." in raw strings, f.i. -> "hello . with . dots."
+        .map((x) => x?.split(".") ?? x)
+        .map((x) => {
+          if (x.length == 2) {
+            return ["attribute", x[1]];
+          }
+          return ["value", x[0]];
+        });
+      /** 'd' in order to generate indices */
+      // const regex = /{{%}}/d;
+      html.querySelectorAll(selector).forEach(function (node) {
+        attributes.forEach(function ([type, data]) {
+          let value = "";
+          if (type == "attribute" && data == "value") {
+            value = node.innerHTML;
+          } else if (type == "attribute") {
+            value = node.getAttribute(data) ?? "";
+          } else {
+            value = data;
+          }
+          /** 'String#replace' always the first match */
+          valueTemplate = valueTemplate.replace("{{%}}", value);
+        });
+
+        node.set_content(valueTemplate);
+        // console.log(node.outerHTML)
+      });
+      html.set_content(html?.toString());
+    } else if (program == "we") {
       // console.log(param.split(","));
       const [selector, tagToInsert] = param.split(",");
       /** @todo: handle undefined tagToInsert, raise some error! */
@@ -147,6 +183,8 @@ function _tag_program(html: HTMLElement, param: string, program: string) {
 }
 
 function _rm_program(html: HTMLElement, param: string) {
+  // console.log({param})
+  /** passing el1,el2,el3 wworks! */
   html.querySelectorAll(param).forEach(function (node) {
     node.remove();
   });
