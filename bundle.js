@@ -15463,7 +15463,7 @@ function _run(expression, html) {
     ];
     for (const param of params){
         if (program == "value") {
-            let [selector, valueTemplate, ...valuesOrExpressions] = param.split(",");
+            const [selector, valueTemplate, ...valuesOrExpressions] = param.split(",");
             const attributes = valuesOrExpressions.map((x)=>x?.split(".") ?? x).map((x)=>{
                 if (x.length == 2) {
                     return [
@@ -15477,6 +15477,7 @@ function _run(expression, html) {
                 ];
             });
             html.querySelectorAll(selector).forEach(function(node) {
+                let currentTemplate = valueTemplate.slice();
                 attributes.forEach(function([type, data]) {
                     let value = "";
                     if (type == "attribute" && data == "value") {
@@ -15486,9 +15487,9 @@ function _run(expression, html) {
                     } else {
                         value = data;
                     }
-                    valueTemplate = valueTemplate.replace("{{%}}", value);
+                    currentTemplate = currentTemplate.replace("{{%}}", value);
                 });
-                node.set_content(valueTemplate);
+                node.set_content(currentTemplate);
             });
             html.set_content(html?.toString());
         } else if (program == "we") {

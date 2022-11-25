@@ -619,7 +619,7 @@ Deno.test(
 );
 
 Deno.test(
-  "can change value of elements by merging a template string and mixed placeholder fields",
+  "can change value of elements by merging a template string with mixed placeholder fields",
   function () {
     const html = `
 <li data-path="ROOT/ms" data-key="integer">ms</li>
@@ -690,6 +690,63 @@ Deno.test(
         html
       ),
       expectedHtml2
+    );
+  }
+);
+
+Deno.test(
+  "regression: can change value of multiple same elements",
+  function () {
+    const html = `
+    <li>
+    <details data-path="ROOT/info" data-key="info-590" data-name="info" class="j2h-record">
+        <summary>info</summary>
+<li data-path="ROOT/info/count" data-key="integer">count</li>
+<li data-key="null">prev</li>
+</details>
+</li>
+<li>
+    <details data-path="ROOT/results" data-key="results" class="j2h-tuple">
+        <summary>results</summary>
+        <ul data-path="ROOT/results/0" data-key="0-140" data-name="0" class="j2h-record">
+            <li data-path="ROOT/results/0/id" data-key="integer">id</li>
+            <li>
+                <details data-path="ROOT/results/0/residents" data-key="residents" class="j2h-tuple">
+                    <summary>residents</summary>
+            <li data-path="ROOT/results/0/residents/0" data-key="string">0</li>
+    </details>
+</li>
+<li data-path="ROOT/results/0/url" data-key="string">url</li>
+</ul>
+</details>
+</li>`;
+
+    const expectedHtml = `<li>
+    <details data-path="ROOT/info" data-key="info-590" data-name="info" class="j2h-record">
+        <summary><span>info</span></summary>
+<li data-path="ROOT/info/count" data-key="integer">count</li>
+<li data-key="null">prev</li>
+</details>
+</li>
+<li>
+    <details data-path="ROOT/results" data-key="results" class="j2h-tuple">
+        <summary><span>results</span></summary>
+        <ul data-path="ROOT/results/0" data-key="0-140" data-name="0" class="j2h-record">
+            <li data-path="ROOT/results/0/id" data-key="integer">id</li>
+            <li>
+                <details data-path="ROOT/results/0/residents" data-key="residents" class="j2h-tuple">
+                    <summary><span>residents</span></summary>
+            <li data-path="ROOT/results/0/residents/0" data-key="string">0</li>
+    </details>
+</li>
+<li data-path="ROOT/results/0/url" data-key="string">url</li>
+</ul>
+</details>
+</li>`;
+
+    assertEquals(
+      query_html(". | value summary,<span>{{%}}<span>,&.value", html),
+      expectedHtml
     );
   }
 );

@@ -9,7 +9,7 @@ import beautify from "https://esm.sh/js-beautify@1.14.0";
 export function query_html(
   query: string,
   html_data: string,
-  whitespace = true,
+  whitespace = true
 ) {
   if (_is_dot(query)) return beautify.html(html_data);
 
@@ -37,7 +37,7 @@ function _run(expression: string, html: HTMLElement) {
 
   for (const param of params) {
     if (program == "value") {
-      let [selector, valueTemplate, ...valuesOrExpressions] = param.split(",");
+      const [selector, valueTemplate, ...valuesOrExpressions] = param.split(",");
       const attributes = valuesOrExpressions
         // todo: handle "." in raw strings, f.i. -> "hello . with . dots."
         .map((x) => x?.split(".") ?? x)
@@ -50,6 +50,7 @@ function _run(expression: string, html: HTMLElement) {
       /** 'd' in order to generate indices */
       // const regex = /{{%}}/d;
       html.querySelectorAll(selector).forEach(function (node) {
+        let currentTemplate = valueTemplate.slice();
         attributes.forEach(function ([type, data]) {
           let value = "";
           if (type == "attribute" && data == "value") {
@@ -60,11 +61,11 @@ function _run(expression: string, html: HTMLElement) {
             value = data;
           }
           /** 'String#replace' always the first match */
-          valueTemplate = valueTemplate.replace("{{%}}", value);
+          currentTemplate = currentTemplate.replace("{{%}}", value)
         });
 
-        node.set_content(valueTemplate);
-        // console.log(node.outerHTML)
+        // node.innerHTML = 'valueTemplate'
+        node.set_content(currentTemplate);
       });
       html.set_content(html?.toString());
     } else if (program == "we") {
@@ -149,7 +150,7 @@ function _run(expression: string, html: HTMLElement) {
           {},
           "",
           null,
-          [0, 0],
+          [0, 0]
         );
         const value = attribute
           ? node.getAttribute(attribute)!
@@ -206,23 +207,22 @@ function _img_element(
   id: string,
   height: string,
   width: string,
-  src: string,
+  src: string
 ): string | Node {
   return new HTMLElement(
     "img",
     { id },
     `height="${height}" width="${width}" src="${src}" alt="image"`,
     null,
-    [0, 0],
+    [0, 0]
   );
 }
 
 function _wrap_program(param: string, html: HTMLElement) {
   const [tagName, ...attributes] = param.split(",");
   const [attrName, attrValue] = attributes;
-  const rawAttributes = attributes.length > 0
-    ? `${attrName}="${attrValue}"`
-    : "";
+  const rawAttributes =
+    attributes.length > 0 ? `${attrName}="${attrValue}"` : "";
 
   const wrapper = new HTMLElement(tagName, {}, rawAttributes, null, [0, 0]);
   wrapper.appendChild(html);
