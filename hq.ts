@@ -37,7 +37,8 @@ function _run(expression: string, html: HTMLElement) {
 
   for (const param of params) {
     if (program == "value") {
-      const [selector, valueTemplate, ...valuesOrExpressions] = param.split(",");
+      const [selector, valueTemplate, ...valuesOrExpressions] =
+        param.split(",");
       const attributes = valuesOrExpressions
         // todo: handle "." in raw strings, f.i. -> "hello . with . dots."
         .map((x) => x?.split(".") ?? x)
@@ -61,7 +62,7 @@ function _run(expression: string, html: HTMLElement) {
             value = data;
           }
           /** 'String#replace' always the first match */
-          currentTemplate = currentTemplate.replace("{{%}}", value)
+          currentTemplate = currentTemplate.replace("{{%}}", value);
         });
 
         // node.innerHTML = 'valueTemplate'
@@ -140,6 +141,43 @@ function _run(expression: string, html: HTMLElement) {
         }
       }
       // console.log(html.toString())
+    } else if (program == "itab") {
+      // console.log("itab")
+      // console.log(param.split(","))
+      const [selector, valueTemplate, ...valuesOrExpressions] =
+        param.split(",");
+      // console.log({valuesOrExpressions})
+      const attributes = valuesOrExpressions
+        // todo: handle "." in raw strings, f.i. -> "hello . with . dots."
+        .map((x) => x?.split(".") ?? x)
+        .map((x) => {
+          if (x.length == 2) {
+            return ["attribute", x[1]];
+          }
+          return ["value", x[0]];
+        });
+      // console.log({attributes})
+
+      html.querySelectorAll(selector).forEach(function (node) {
+        let currentTemplate = valueTemplate.slice();
+        attributes.forEach(function ([type, data]) {
+          let value = "";
+          if (type == "attribute" && data == "value") {
+            value = node.innerHTML;
+          } else if (type == "attribute") {
+            value = node.getAttribute(data) ?? "";
+          } else {
+            value = data;
+          }
+          /** 'String#replace' always the first match */
+          currentTemplate = currentTemplate.replace("{{%}}", value);
+          // console.log(currentTemplate)
+        });
+
+        node.insertAdjacentHTML("afterbegin", currentTemplate);
+        // console.log(node.outerHTML)
+      });
+      html.set_content(html?.toString());
     } else if (program == "iab") {
       const [selector, tagToInsert, nodeValueOrExpression] = param.split(",");
       // todo: handle "." in raw strings, f.i. -> "hello . with . dots."

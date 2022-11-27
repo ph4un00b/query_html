@@ -255,6 +255,62 @@ Deno.test("can insert node after begin", function () {
   assertEquals(query_html(". | iab #result,summary", html), expectedHtml);
 });
 
+Deno.test("can insert template node after begin", function () {
+  const html = `<ul>
+    <li id="integer">ms</li>
+    <li id="string">query</li>
+    <details id="result" data-key="result-606" data-val="result" class="j2h-tuple">
+        <ul id="0">
+            <li id="string">_createdAt</li>
+            <li id="string">_id</li>
+            <li id="string">_rev</li>
+            <li id="string">_type</li>
+            <li id="string">_updatedAt</li>
+            <li id="string">imageUrl</li>
+            <li id="string">name</li>
+            <li id="string">title</li>
+        </ul>
+    </details>
+</ul>`;
+
+  const expectedHtml = `<ul>
+    <li id="integer">ms</li>
+    <li id="string">query</li>
+    <details id="result" data-key="result-606" data-val="result" class="j2h-tuple">
+        <summary><input type="checkbox" id="result-606" value="result"><label for="result-606">result</label></summary>
+        <ul id="0">
+            <li id="string">_createdAt</li>
+            <li id="string">_id</li>
+            <li id="string">_rev</li>
+            <li id="string">_type</li>
+            <li id="string">_updatedAt</li>
+            <li id="string">imageUrl</li>
+            <li id="string">name</li>
+            <li id="string">title</li>
+        </ul>
+    </details>
+</ul>`;
+
+  assertEquals(
+    query_html(
+      `
+    .
+    | itab [class="j2h-tuple"],
+      <summary>
+        <input type="checkbox" id="{{%}}" value="{{%}}" />
+        <label for="{{%}}">{{%}}</label>
+      </summary>,
+      &.data-key,
+      &.data-val,
+      &.data-key,
+      &.data-val
+    `,
+      html
+    ),
+    expectedHtml
+  );
+});
+
 Deno.test("can insert node after begin with a value", function () {
   const html = `<ul>
     <li id="integer">ms</li>

@@ -15522,10 +15522,40 @@ function _run(expression, html) {
                     html.set_content(xs.html(html?.toString()));
                 }
             }
-        } else if (program == "iab") {
-            const [selector4, tagToInsert1, nodeValueOrExpression] = param.split(",");
-            const [_placeholder, attribute] = nodeValueOrExpression?.split(".") ?? [];
+        } else if (program == "itab") {
+            const [selector4, valueTemplate1, ...valuesOrExpressions1] = param.split(",");
+            const attributes2 = valuesOrExpressions1.map((x)=>x?.split(".") ?? x).map((x)=>{
+                if (x.length == 2) {
+                    return [
+                        "attribute",
+                        x[1]
+                    ];
+                }
+                return [
+                    "value",
+                    x[0]
+                ];
+            });
             html.querySelectorAll(selector4).forEach(function(node) {
+                let currentTemplate = valueTemplate1.slice();
+                attributes2.forEach(function([type, data]) {
+                    let value = "";
+                    if (type == "attribute" && data == "value") {
+                        value = node.innerHTML;
+                    } else if (type == "attribute") {
+                        value = node.getAttribute(data) ?? "";
+                    } else {
+                        value = data;
+                    }
+                    currentTemplate = currentTemplate.replace("{{%}}", value);
+                });
+                node.insertAdjacentHTML("afterbegin", currentTemplate);
+            });
+            html.set_content(html?.toString());
+        } else if (program == "iab") {
+            const [selector5, tagToInsert1, nodeValueOrExpression] = param.split(",");
+            const [_placeholder, attribute] = nodeValueOrExpression?.split(".") ?? [];
+            html.querySelectorAll(selector5).forEach(function(node) {
                 const elementToInsert = new fr(tagToInsert1, {}, "", null, [
                     0,
                     0
